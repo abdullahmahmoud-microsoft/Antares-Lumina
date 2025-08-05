@@ -15,7 +15,7 @@ if not defined PYTHON_CMD (
 )
 if not defined PYTHON_CMD (
     echo Python is not installed or not on PATH.
-    echo Please install Python 3.8+ from https://www.python.org/downloads/
+    echo Please install Python 3.9+ from https://www.python.org/downloads/
     pause
     exit /b 1
 )

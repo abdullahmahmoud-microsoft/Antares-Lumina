@@ -1,4 +1,7 @@
-# 💡 Antares Lumina
+<h1>
+  <img src="lumina-logo.png" alt="Antares Lumina Logo" width="40" style="vertical-align: middle;"/>
+  Antares Lumina
+</h1>
 
 **Antares Lumina** is an intelligent, context-aware assistant designed to help engineers search, learn from, and contribute to organizational knowledge in real-time. Think of it as a junior engineer on your team — one that never forgets what it's taught and improves with every interaction.
 
@@ -24,7 +27,6 @@ It helps reduce tribal knowledge, accelerates onboarding, and ensures that learn
 ### ⚙ Prerequisites
 
 - Python 3.9+
-- Azure Storage connection string and container name (set as environment variables)
 - Git
 
 ### One-Time Setup (First-Time Only)
@@ -95,11 +97,11 @@ For any issues, ideas, or contributions, please reach out to:
 
 ## Reminder
 
-> Lumina is only as good as the knowledge you give it.
-> 
-> Please upload clean, accurate, and meaningful content so that everyone on the team can benefit.
->
-> If Lumina is missing knowledge, treat it like a new engineer and give it that knowledge!
+Lumina is only as good as the knowledge you give it.
+
+Please upload clean, accurate, and meaningful content so that everyone on the team can benefit.
+
+If Lumina is missing knowledge, treat it like a new engineer and give it that knowledge!
 
 ---
 
