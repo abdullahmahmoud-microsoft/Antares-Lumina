@@ -38,6 +38,7 @@ echo Installing packages...
 %VENV_PY% -m pip install ^
     azure-storage-blob ^
     azure-core ^
+    azure-identity ^
     azure-search-documents ^
     PyMuPDF ^
     beautifulsoup4 ^
