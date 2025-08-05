@@ -691,7 +691,7 @@ def upload_feedback_to_container(history=None, written=None, feedbackType=None):
             blob_name = f"feedback/written-{timestamp}.json"
             blob_client = container_client.get_blob_client(blob_name)
             blob_client.upload_blob(json.dumps(feedback_data, indent=2), overwrite=True)
-            print(f"✅ Written feedback saved to {blob_name}")
+            print(f"Written feedback saved to {blob_name}")
             return
 
         elif feedbackType in ("positive", "negative"):
@@ -723,7 +723,7 @@ def upload_feedback_to_container(history=None, written=None, feedbackType=None):
                         stats_blob_client.upload_blob(new_data, overwrite=True, if_match=etag)
                     else:
                         stats_blob_client.upload_blob(new_data, overwrite=True)
-                    print(f"✅ Updated feedback stats in {stats_blob_name}")
+                    print(f"Updated feedback stats in {stats_blob_name}")
                     return
                 except ResourceModifiedError:
                     if attempt < max_retries - 1:
