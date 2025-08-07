@@ -20,6 +20,15 @@ def handle_user_input():
                 print_shortcuts()
                 continue
 
+            if user_text.lower() == "feedback":
+                #if conversation_history is null then we cant do feedback since user didnt ask anything yet
+                if not conversation_history:
+                    print("\nNo conversation history available for feedback. Please ask a question first.")
+                    continue
+                if conversation_history:
+                    if not handle_feedback():
+                        continue
+
             if handle_meeting_transcripts(user_text=user_text):
                 continue
 
@@ -35,8 +44,7 @@ def handle_user_input():
             conversation_history.append((user_text, assistant_reply))
 
             print(f"\n\nLumina: {assistant_reply}")
-            handle_feedback()
-
+            
         except Exception as e:
             print(f"\nAn error occurred while processing your message: {e}")
             traceback.print_exc()

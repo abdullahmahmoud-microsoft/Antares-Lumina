@@ -51,6 +51,19 @@ echo Installing packages...
     easyocr ^
     azure-keyvault-secrets
 
+:: Check if Azure CLI is installed
+echo.
+where az >nul 2>&1
+if errorlevel 1 (
+    echo Azure CLI is not installed. Please install it from:
+    echo https://learn.microsoft.com/en-us/cli/azure/install-azure-cli
+    pause
+    exit /b 1
+) else (
+    echo Azure CLI found. Starting login...
+    az login
+)
+
 echo.
 echo ✅ Setup complete. To activate venv manually later:
 echo    .venv\Scripts\activate   (for cmd)

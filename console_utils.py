@@ -39,6 +39,8 @@ def handle_feedback():
     else:
         print("\nSkipping feedback.")
 
+    return True
+
 def print_intro():
     print("""
         Welcome to Antares Lumina!
@@ -69,7 +71,8 @@ def print_shortcuts():
     print("\n\nShortcuts:")
     print("1. Type 'upload meeting transcript' to process all files in the local MeetingTranscripts folder.")
     print("2. Type 'store/upload/save this in the knowledge base' to pull up a prompt to enter knowledge or context. Type 'END' on a new line when you're finished.")
-    print("3. Type 'exit' or 'quit' to end the session.")
+    print("3. Type 'feedback' to provide feedback on Lumina's last response.")
+    print("4. Type 'exit' or 'quit' to end the session.")
 
 
 def handle_knowledge_storage(user_text):

@@ -77,7 +77,7 @@ Once running, Lumina will prompt you in the terminal.
   upload meeting transcript
   ```
 
-- **Give Feedback**: After each response, you’ll be prompted to leave feedback (thumbs up/down or written comments). We will review these and improve the system accordingly.
+- **Give Feedback**: After each response, you can type "feedback". You’ll be prompted to leave feedback (thumbs up/down or written comments). We will review these and improve the system accordingly.
 
 - **Shortcuts**: Type `help` at any time to see supported commands.
 

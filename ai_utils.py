@@ -278,6 +278,9 @@ def get_indices():
 INDICES = get_indices()
 
 def query_search_indices(query):
+
+    INDICES = get_indices()
+
     endpoint = f"https://{config.SEARCH_SERVICE_NAME}.search.windows.net"
     credential = AzureKeyCredential(config.ADMIN_KEY)
     all_results = []
@@ -519,7 +522,6 @@ def store_conversation(conversation_id, conversation_history):
     return True
 
 def handle_link_knowledge_upload(user_text):
-    # Handle batch upload from file
     file_match = re.search(r'\b(upload|store|save|add|ingest)\b.*\b(file|txt|EngHubLinks\.txt)\b', user_text, re.IGNORECASE)
     if file_match:
         file_path = "EngHubLinks.txt"
@@ -539,7 +541,6 @@ def handle_link_knowledge_upload(user_text):
         print(f"{len(urls)} links have been stored!" if success else "Failed to store one or more URLs. Please try again.")
         return True
 
-    # Handle inline link upload
     if re.search(r'\b(upload|store|save|add|ingest)\b.*https?://', user_text, re.IGNORECASE):
         normalized_input = re.sub(r'[,\n]', ' ', user_text)
         urls = re.findall(r'https?://[^\s]+', normalized_input)
