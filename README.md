@@ -5,7 +5,9 @@
 
 **Antares Lumina** is an intelligent, context-aware assistant designed to help engineers search, learn from, and contribute to organizational knowledge in real-time. Think of it as a junior engineer on your team — one that never forgets what it's taught and improves with every interaction.
 
-This dogfood CLI version lets users interact with Lumina locally, feeding it links, notes, and transcripts — all of which are indexed and searchable for smarter, faster responses across the team.
+This dogfood CLI version lets users interact with Lumina locally, feeding it links, notes, and transcripts — all of which are indexed and searchable for smarter, faster responses across the team. We are counting on you for feedback!
+
+*NOTE*: Lumina is preloaded with some engineering hub docs and other random knowledge, but expect it won't know most things out of the box.
 
 ---
 
@@ -51,6 +53,14 @@ run_lumina.bat
 ```
 
 ---
+
+## Example Prompts
+
+- How do I grab JIT access?
+- Where do I download Minidash?
+- Can you tell me about the Kusto table(s) that are used for Front End logs?
+- Should I like Petr's memes?
+
 
 ## How to Use
 

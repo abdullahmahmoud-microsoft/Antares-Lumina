@@ -3,6 +3,8 @@
 import re
 import uuid
 from ai_utils import upload_feedback_to_container, store_conversation
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import InMemoryHistory
 
 conversation_id = f"console-session-{uuid.uuid4()}"
 conversation_history = []
@@ -51,12 +53,13 @@ def print_intro():
             - You can also paste links to EngHubLinks.txt and ask me to process them all by saying "upload links from EngHubLinks.txt".
         - Type 'store/upload/save this in the knowledge base' to pull up a prompt to enter knowledge or context. Type 'END' on a new line when you're finished.
         - Type 'upload meeting transcript' to process all .txt files in the local MeetingTranscripts folder.
+        - Type 'feedback' to provide feedback on Lumina's last response. We use this to improve the system!
           
         To display my capabilities at any time, type 'help'.
 
         - Lumina searches across indexed documentation, release notes, and transcripts.
         - Context-aware memory and input from dozens of users daily helps it refine answers over time.
-        - You'll be asked for feedback after each response to help improve answers.
+        - Please make sure to provide feedback on my responses so I can improve!
         - Note: Lumina is only as good as your data. Please make sure your data is clean, clear, and useful, so that you and others can benefit. 
         
 
@@ -77,15 +80,26 @@ def print_shortcuts():
 
 def handle_knowledge_storage(user_text):
     if re.search(r'\b(upload|store|save|add|ingest)\b.*(note|knowledge|context|info|information|this)', user_text, re.IGNORECASE):
-        print("\nEnter your knowledge/note below. Type 'END' on a new line when you're finished:\n")
+        print("\nEnter your knowledge/note below.")
+        print("Use arrow keys to navigate and edit.")
+        print("Type 'END' on a new line when finished.\n")
+        
+        session = PromptSession(history=InMemoryHistory())
         lines = []
+        
         while True:
-            line = input()
-            if line.strip().upper() == "END":
-                break
-            lines.append(line)
-        knowledge = "\n".join(lines)
-        store_conversation(conversation_id, knowledge)
-        print(f"\nStored!\n\n")
+            try:
+                line = session.prompt("> ")
+                if line.strip().upper() == "END":
+                    break
+                lines.append(line)
+            except KeyboardInterrupt:
+                print("\nCancelled input.")
+                return True
+        
+        if lines:  # Only store if there's actual content
+            knowledge = "\n".join(lines)
+            store_conversation(conversation_id, knowledge)
+            print(f"\nStored!\n")
         return True
     return False

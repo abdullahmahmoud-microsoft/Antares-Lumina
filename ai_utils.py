@@ -73,6 +73,7 @@ def scrape_authenticated_page(url):
     driver.get(url)
 
     try:
+        print("Waiting for page to load... (Disregard access token/render errors)")
         WebDriverWait(driver, 20).until(lambda d: d.find_element(By.ID, "_content"))
     except Exception as e:
         print("Warning: Main content not detected; proceeding anyway.", e)
@@ -151,6 +152,8 @@ def generate_qa_pairs(text_chunk, identifier, max_retries=3):
         f"Generate between {target_min} and {target_max} highly relevant question-answer pairs. Ensure coverage of all key topics and sections presented in the content."
         "Each Q&A pair must be specific and accurate. If the text does not provide a clear, definitive answer, skip generating that pair. "
         "Replace any user-specific details (such as IDs, GUIDs, or personal information) with placeholders. "
+        "If the text includes code snippets or queries, ensure they are properly formatted and preserved in the output. "
+        "For queries, dont ask about small details, just ask about the query itself and what it does. "
         "Return your answer in JSON format as a list of objects, each with a 'question' field and an 'answer' field.\n\n"
         "Content:\n" + text_chunk
     )
@@ -448,77 +451,80 @@ def upsert_documents(service_name, admin_key, index_name, documents):
     else:
         print(f"No new documents to upload to index '{index_name}'.")
 
-def store_conversation(conversation_id, conversation_history):
-    convo_lines = []
+def is_kusto(text):
+    kusto_pipe_patterns = [
+        r'\|\s*(where|project|summarize|extend|join|parse|distinct|take|top|order by|sort by)\b'
+    ]
     
-    for item in conversation_history:
-        if isinstance(item, (list, tuple)) and len(item) == 2:
-            role, content = item
-            convo_lines.append(f"{str(role).capitalize()}: {str(content)}")
-        else:
-            convo_lines.append(str(item))
+    return any(bool(re.search(pattern, text, re.IGNORECASE)) for pattern in kusto_pipe_patterns)
 
-    convo_text = "\n".join(convo_lines)
+def store_conversation(conversation_id, conversation_history):
+    convo_text = conversation_history if isinstance(conversation_history, str) else "\n".join(map(str, conversation_history))
+    
     print("Storing conversation....")
 
-    qa_pairs = generate_qa_pairs(convo_text, f"manual-knowledge-1")
-    if not qa_pairs:
-        print("No QA pairs were generated.")
-        return False
-
-    documents = []
-    doc_index = 0
-    page_title = f"Conversation from {conversation_id}"
-    
-    for qa in qa_pairs:
-        if not isinstance(qa, dict):
-            print("Skipping non-dict QA pair:", qa)
-            continue
-        question = " ".join(qa.get("question", "").split())
-        answer = " ".join(qa.get("answer", "").split())
-        if not question or not answer:
-            continue
+    if is_kusto(convo_text):
         doc = {
-            "id": f"{conversation_id}-{doc_index}",
-            "doc_type": "qa",
-            "page_title": page_title,
-            "title": question,
-            "content": f"Question: {question}\nAnswer: {answer}",
-            "file_name": f"conversation-{conversation_id}",
-            "upload_date":  time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        }
-        documents.append(doc)
-        doc_index += 1
-
-    content_chunks = split_text_with_overlap(convo_text, chunk_size=3000, overlap=300)
-    for idx, chunk in enumerate(content_chunks):
-        doc = {
-            "id": f"{conversation_id}-content-{idx}",
-            "doc_type": "content",
-            "page_title": page_title,
-            "title": f"Conversation from {conversation_id} - Content Part {idx+1}",
-            "content": chunk,
-            "file_name": f"conversation-{conversation_id}",
+            "id": f"{conversation_id}-technical",
+            "doc_type": "technical",
+            "title": convo_text.split('\n')[0][:100],
+            "content": convo_text,
             "upload_date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         }
-        documents.append(doc)
-        doc_index += 1
+        documents = [doc]
+    else:
+        qa_pairs = generate_qa_pairs(convo_text, f"dogfood-conversation-knowledge-1")
+        if not qa_pairs:
+            print("No QA pairs were generated.")
+            return False
 
-    index_name = "manual-knowledge-1"
-    endpoint = f"https://{config.SEARCH_SERVICE_NAME}.search.windows.net"
-    credential = AzureKeyCredential(config.ADMIN_KEY)
-    search_client = SearchClient(endpoint=endpoint, index_name=index_name, credential=credential)
+        documents = []
+        for idx, qa in enumerate(qa_pairs):
+            if not isinstance(qa, dict):
+                continue
+            question = " ".join(qa.get("question", "").split())
+            answer = " ".join(qa.get("answer", "").split())
+            if not question or not answer:
+                continue
+            doc = {
+                "id": f"{conversation_id}-{idx}",
+                "doc_type": "qa",
+                "page_title": f"Knowledge from {conversation_id}",
+                "title": question,
+                "content": f"Question: {question}\nAnswer: {answer}",
+                "file_name": f"conversation-{conversation_id}",
+                "upload_date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            }
+            documents.append(doc)
+
+        # Upload as raw content chunks as well
+        content_chunks = split_text_with_overlap(convo_text, chunk_size=3000, overlap=300)
+        for idx, chunk in enumerate(content_chunks):
+            doc = {
+                "id": f"{conversation_id}-content-{idx}",
+                "doc_type": "content",
+                "page_title": f"Content from {conversation_id}",
+                "title": f"{conversation_id} - Content Part {idx+1}",
+                "content": chunk,
+                "file_name": f"conversation-{conversation_id}",
+                "upload_date": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            }
+            documents.append(doc)
+
+    # Upload documents
+    index_name = "dogfood-conversation-knowledge-1"
 
     try:
-        search_client.get_index()
-        print(f"Index {index_name} exists. Appending to it...")
+        print(f"Appending to index {index_name}...")
         upsert_documents(config.SEARCH_SERVICE_NAME, config.ADMIN_KEY, index_name, documents)
-    except Exception:
-        print(f"Index {index_name} does not exist. Creating a new index...")
+    except Exception as e:
+        print(f"Error appending to index: {str(e)}")
+        # Create index if it doesn't exist
+        print(f"Creating index {index_name}...")
         create_or_replace_index(config.SEARCH_SERVICE_NAME, config.ADMIN_KEY, index_name)
-        upload_documents(config.SEARCH_SERVICE_NAME, config.ADMIN_KEY, index_name, documents)
+        upsert_documents(config.SEARCH_SERVICE_NAME, config.ADMIN_KEY, index_name, documents)
+        return False
 
-    print("Conversation stored to knowledge base.")
     return True
 
 def handle_link_knowledge_upload(user_text):
@@ -611,12 +617,6 @@ def add_link_contents_to_index(urls):
     except Exception as e:
         print(f"Error processing URL {url}: {e}")
         return False
-    
-def handle_storage_command(conversation_id, user_text):
-    if re.search(r'store\s+.*(knowledge base|index)', user_text, re.IGNORECASE):
-        success = store_conversation(conversation_id, user_text)
-        return "Knowledge has been stored!" if success else "Failed to store conversation. Please try again."
-    return
 
 def handle_meeting_transcripts(user_text, path="MeetingTranscripts"):
     if user_text.lower() == "upload meeting transcript":
