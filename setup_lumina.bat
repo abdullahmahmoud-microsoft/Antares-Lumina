@@ -49,7 +49,8 @@ echo Installing packages...
     numpy ^
     pytesseract ^
     easyocr ^
-    azure-keyvault-secrets
+    azure-keyvault-secrets ^
+    prompt-toolkit
 
 :: Check if Azure CLI is installed
 echo.
