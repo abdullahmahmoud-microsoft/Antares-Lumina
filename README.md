@@ -90,6 +90,8 @@ Once running, Lumina will prompt you in the terminal.
   ```
   Then enter your note across multiple lines. Type `END` when you're done.
 
+  PLEASE make sure to be detailed, clear, and concise with your knowledge input to avoid AI hallucination chances.
+
 - **Upload Meeting Transcripts**: Place `.txt` files in the `MeetingTranscripts/` folder, then type:
   ```
   upload meeting transcript
