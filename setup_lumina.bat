@@ -66,7 +66,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo ✅ Setup complete. To activate venv manually later:
+echo   Setup complete. To activate venv manually later:
 echo    .venv\Scripts\activate   (for cmd)
 echo    .venv\Scripts\Activate.ps1 (for PowerShell)
 echo.
