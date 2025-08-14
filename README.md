@@ -74,6 +74,14 @@ Once running, Lumina will prompt you in the terminal.
   ```
   upload links from EngHubLinks.txt
   ```
+- **Remove EngHub Content**: To remove content in knowledge base from a specific EngHub document, type:
+  ```
+  remove https://eng.ms/docs/your/document/path
+  ```
+  or
+  ```
+  delete https://eng.ms/docs/your/document/path
+  ```
 - **Store Notes or Learnings**: Type any of:
   ```
   store this in the knowledge base

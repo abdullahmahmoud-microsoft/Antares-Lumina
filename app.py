@@ -2,7 +2,7 @@
 
 import traceback
 from console_utils import print_intro, print_shortcuts, handle_feedback, handle_knowledge_storage, conversation_history
-from ai_utils import handle_meeting_transcripts, query_search_indices, generate_response, handle_link_knowledge_upload
+from ai_utils import handle_meeting_transcripts, query_search_indices, generate_response, handle_link_knowledge_upload_or_deletion
 
 def handle_user_input():
     print_intro()
@@ -32,7 +32,7 @@ def handle_user_input():
             if handle_meeting_transcripts(user_text=user_text):
                 continue
 
-            if handle_link_knowledge_upload(user_text):
+            if handle_link_knowledge_upload_or_deletion(user_text):
                 continue
 
             if handle_knowledge_storage(user_text):

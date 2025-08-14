@@ -51,6 +51,7 @@ def print_intro():
         - Ask me anything Antares! If I don't know the answer, please feed it to me so I can learn for next time or the next person. 
         - Paste eng hub documentation links and Lumina will read, scrape, and store all the knowledge within the contents of the link.
             - You can also paste links to EngHubLinks.txt and ask me to process them all by saying "upload links from EngHubLinks.txt".
+        - Type 'remove/delete <URL>' to remove content from a specific engineering hub document.
         - Type 'store/upload/save this in the knowledge base' to pull up a prompt to enter knowledge or context. Type 'END' on a new line when you're finished.
         - Type 'upload meeting transcript' to process all .txt files in the local MeetingTranscripts folder.
         - Type 'feedback' to provide feedback on Lumina's last response. We use this to improve the system!

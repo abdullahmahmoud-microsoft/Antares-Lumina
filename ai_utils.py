@@ -527,7 +527,21 @@ def store_conversation(conversation_id, conversation_history):
 
     return True
 
-def handle_link_knowledge_upload(user_text):
+def handle_link_knowledge_upload_or_deletion(user_text):
+    remove_match = re.search(r'\b(remove|delete)\b.*https?://', user_text, re.IGNORECASE)
+    if remove_match:
+        normalized_input = re.sub(r'[,\n]', ' ', user_text)
+        urls = re.findall(r'https?://[^\s]+', normalized_input)
+        
+        if not urls:
+            print("No valid URLs found in the message. Please provide a valid URL.")
+            return True
+            
+        for url in urls:
+            success = remove_enghub_content(url)
+            print(f"Content {'removed successfully' if success else 'not found'} for {url}")
+        return True
+
     file_match = re.search(r'\b(upload|store|save|add|ingest)\b.*\b(file|txt|EngHubLinks\.txt)\b', user_text, re.IGNORECASE)
     if file_match:
         file_path = "EngHubLinks.txt"
@@ -744,3 +758,69 @@ def upload_feedback_to_container(history=None, written=None, feedbackType=None):
     except Exception as e:
         print(f"Error uploading feedback: {e}")
         return False
+
+def delete_documents_by_url(url):
+    endpoint = f"https://{config.SEARCH_SERVICE_NAME}.search.windows.net"
+    credential = AzureKeyCredential(config.ADMIN_KEY)
+    
+    results = {
+        "indices_checked": 0,
+        "documents_deleted": 0,
+        "errors": []
+    }
+
+    try:
+        index_client = SearchIndexClient(endpoint=endpoint, credential=credential)
+        indices = [index.name for index in index_client.list_indexes()]
+        results["indices_checked"] = len(indices)
+    except Exception as e:
+        results["errors"].append(f"Failed to list indices: {str(e)}")
+        return results
+
+    for index_name in indices:
+        try:
+            search_client = SearchClient(endpoint=endpoint, 
+                                      index_name=index_name, 
+                                      credential=credential)
+            
+            filter_expr = f"file_name eq '{url}'"
+            docs_to_delete = list(search_client.search("*", 
+                                                     filter=filter_expr,
+                                                     select=["id"],
+                                                     include_total_count=True))
+            
+            if docs_to_delete:
+                delete_actions = [{"@search.action": "delete", 
+                                 "id": doc["id"]} 
+                                for doc in docs_to_delete]
+                
+                search_client.upload_documents(documents=delete_actions)
+                results["documents_deleted"] += len(delete_actions)
+                
+                print(f"Deleted {len(delete_actions)} documents from index '{index_name}'")
+                
+        except Exception as e:
+            results["errors"].append(f"Error in index {index_name}: {str(e)}")
+
+    return results
+
+def remove_enghub_content(url):
+
+    print(f"Removing content for URL: {url}")
+    
+    if not url.startswith(("http://", "https://")):
+        print("Invalid URL format")
+        return False
+        
+    results = delete_documents_by_url(url)
+    
+    print("\nDeletion Summary:")
+    print(f"Indices checked: {results['indices_checked']}")
+    print(f"Documents deleted: {results['documents_deleted']}")
+    
+    if results["errors"]:
+        print("\nErrors encountered:")
+        for error in results["errors"]:
+            print(f"- {error}")
+            
+    return results["documents_deleted"] > 0
